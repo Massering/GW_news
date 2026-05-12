@@ -1,12 +1,11 @@
 import json
-import requests
-import time
-from bs4 import BeautifulSoup
-from telegram import Bot
+from telebot import TeleBot
 from datetime import datetime, timedelta
 import os
 from dotenv import load_dotenv
 
+import LLM_local
+import LLM_online
 from parser import YandexArchiveParser, YEAR_URLS
 
 load_dotenv()
@@ -15,7 +14,7 @@ BOT_TOKEN = os.getenv("BOT_TOKEN")
 CHANNEL_ID = os.getenv("CHANNEL_ID")
 PROMPT_FILE = "prompt.txt"
 
-bot = Bot(token=BOT_TOKEN)
+bot = TeleBot(token=BOT_TOKEN)
 
 
 def load_prompt():
@@ -26,14 +25,12 @@ def load_prompt():
 def generate_news(text):
     full_prompt = load_prompt().replace("{{content}}", text)
 
-    response = requests.post("http://localhost:11434/api/generate", json={
-        "model": "deepseek-r1:7b",
-        "prompt": full_prompt,
-        "temperature": 0.7,
-        "stream": False
-    })
+    filename = f"promt.txt"
+    with open(filename, "w", encoding="utf-8") as f:
+        f.write(full_prompt)
 
-    return response.json()["response"]
+    text = LLM_local.LLM_query(full_prompt)
+    return text
 
 
 def publish(text):
@@ -51,12 +48,18 @@ def job():
     )
 
     os.makedirs("Izvestia", exist_ok=True)
-    with open(f"Izvestia/izvestia_{target_date.strftime('%Y-%m-%d')}.json", "w", encoding="utf-8") as f:
+    filename = f"Izvestia/izvestia_{target_date.strftime("%Y-%m-%d")}.json"
+    with open(filename, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
     all_text = '\n\n'.join([i["text"] for i in data["pages"]])
+    print(len(all_text), all_text[:200])
+
     news = generate_news(all_text)
-    publish(news)
+    print(len(news), news[:200])
+
+    if news:
+        publish(news)
 
 
 if __name__ == "__main__":

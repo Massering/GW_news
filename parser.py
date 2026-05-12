@@ -53,10 +53,6 @@ class YandexArchiveParser:
             ),
         })
 
-    # =====================================================
-    # GET HTML
-    # =====================================================
-
     def get_html(self, url: str) -> str:
 
         print(f"[GET] {url}")
@@ -71,14 +67,9 @@ class YandexArchiveParser:
         return response.text
 
     def get_soup(self, url: str) -> BeautifulSoup:
-
         html = self.get_html(url)
-
         return BeautifulSoup(html, "lxml")
 
-    # =====================================================
-    # ПОИСК ВЫПУСКА ПО ДАТЕ
-    # =====================================================
     def find_issue_by_date(self, year_url: str, target_date: str):
         soup = self.get_soup(year_url)
 
@@ -89,7 +80,7 @@ class YandexArchiveParser:
         print(f"Найдено карточек: {len(issue_cards)}")
 
         if len(issue_cards) == 0:
-           return None
+            return None
 
         for card in issue_cards:
             date_el = card.select_one(
@@ -135,45 +126,26 @@ class YandexArchiveParser:
 
         return None
 
-    # =====================================================
-    # OCR ТЕКСТ
-    # =====================================================
-
     def extract_ocr_text(self, soup: BeautifulSoup):
-
         lines = soup.select(
             "p.MarkupTextsViewer_RegionsListItem_Readonly__g3lYR"
         )
 
         result = []
-
         for line in lines:
-
             text = line.get_text(" ", strip=True)
-
             if text:
                 result.append(text)
 
         return "\n".join(result)
 
-    # =====================================================
-    # ПАРСИНГ СТРАНИЦЫ
-    # =====================================================
-
     def parse_page(self, page_url: str):
-
         soup = self.get_soup(page_url)
-
         text = self.extract_ocr_text(soup)
-
         return {
             "url": page_url,
             "text": text
         }
-
-    # =====================================================
-    # ПОЛНЫЙ ПАРСИНГ ВЫПУСКА
-    # =====================================================
 
     def parse_issue_by_date(self, year_url: str, target_date: str):
         for i in range(1, 8):
@@ -193,7 +165,7 @@ class YandexArchiveParser:
 
         page_urls = []
 
-        for page_num in range(1, 5):
+        for page_num in range(1, 2):  # Будем читать только 1 страницу (и так много контента)
             page_urls.append(f"{issue_url}/{page_num}")
 
         result = {
@@ -221,10 +193,6 @@ class YandexArchiveParser:
         return result
 
 
-# =========================================================
-# MAIN
-# =========================================================
-
 if __name__ == "__main__":
     parser = YandexArchiveParser()
 
@@ -235,7 +203,7 @@ if __name__ == "__main__":
         target_date.strftime("%Y-%m-%d")
     )
 
-    filename = f"izvestia_{target_date.strftime("%Y-%m-%d")}.json"
+    filename = f"Izvestia/izvestia_{target_date.strftime("%Y-%m-%d")}.json"
 
     with open(filename, "w", encoding="utf-8") as f:
         json.dump(
