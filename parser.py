@@ -34,9 +34,7 @@ MONTHS = {
 
 
 class YandexArchiveParser:
-
     def __init__(self):
-
         self.scraper = cloudscraper.create_scraper(
             browser={
                 "browser": "chrome",
@@ -157,7 +155,8 @@ class YandexArchiveParser:
                 break
 
         else:
-            raise RuntimeError(f"Выпуск за {target_date} не найден")
+            print(f"Выпуск за {target_date} не найден")
+            return
 
         issue_url = issue["issue_url"]
 
@@ -203,7 +202,7 @@ if __name__ == "__main__":
         target_date.strftime("%Y-%m-%d")
     )
 
-    filename = f"Izvestia/izvestia_{target_date.strftime("%Y-%m-%d")}.json"
+    filename = f"Izvestia/izvestia_{target_date.strftime('%Y-%m-%d')}.json"
 
     with open(filename, "w", encoding="utf-8") as f:
         json.dump(
