@@ -20,6 +20,7 @@ BOT_TOKEN = os.getenv("BOT_TOKEN")
 CHANNEL_ID = os.getenv("CHANNEL_ID")
 ADMIN_UID = int(os.getenv("ADMIN_UID"))
 PROMPT_FILE = "prompt.txt"
+MAX_TELEGRAM_MESSAGE_CHARS = 4000
 
 bot = telebot.TeleBot(BOT_TOKEN, parse_mode=None)
 
@@ -43,7 +44,7 @@ def generate_news(text):
 
 def publish(text):
     if text:
-        bot.send_message(CHANNEL_ID, text[:4000])
+        bot.send_message(CHANNEL_ID, text[:MAX_TELEGRAM_MESSAGE_CHARS])
 
 
 def job():
@@ -55,6 +56,7 @@ def job():
         filename = f"Izvestia/izvestia_{target_date.strftime('%Y-%m-%d')}.json"
 
         if os.path.exists(filename):
+            print('Файл найден. Загрузка кешированного выпуска')
             with open(filename, "r", encoding="utf-8") as f:
                 data = json.load(f)
         else:
@@ -86,7 +88,7 @@ def job():
         # Отправка админу
         bot.send_message(
             ADMIN_UID,
-            full_prompt[:4000]
+            full_prompt[:MAX_TELEGRAM_MESSAGE_CHARS]
         )
 
         news = generate_news(all_text)
